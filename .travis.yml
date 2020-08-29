@@ -1,0 +1,20 @@
+sudo: required
+services:
+ - docker 
+
+before_install:
+ - docker build -t marveltsev/multi-docker -f ./client/Dockerfile.dev ./client
+
+script:
+ - docker run -e CI=true marveltsev/multi-docker npm run test
+
+after_success:
+ - docker build -t marveltsev/multi-client ./client
+ - docker build -t marveltsev/multi-nginx ./nginx 
+ - docker build -t marveltsev/multi-server ./server
+ - docker build -t marveltsev/multi-worker ./worker
+ - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+ - docker push marveltsev/multi-client
+ - docker push marveltsev/multi-nginx
+ - docker push marveltsev/multi-server
+ - docker push marveltsev/multi-worker
